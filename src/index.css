@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-dot-grid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .bento-card {
+    position: relative;
+    background-color: rgba(9, 9, 11, 0.65);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .bento-card:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+  }
+
+  .text-glow-emerald {
+    text-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
+  }
+
+  .text-glow-rose {
+    text-shadow: 0 0 24px rgba(244, 63, 94, 0.4);
+  }
+
+  /* Completely invisible scrollbar with smooth scroll enabled */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Ultra-sleek blended scrollbar matching the dark Antigravity UI */
+  .scrollbar-blend {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16, 185, 129, 0.35) rgba(24, 24, 27, 0.6);
+  }
+
+  .scrollbar-blend::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+
+  .scrollbar-blend::-webkit-scrollbar-track {
+    background: rgba(24, 24, 27, 0.5);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-blend::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.35);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+
+  .scrollbar-blend::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.7);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  }
+
+  .scrollbar-blend::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   Global Antigravity Scrollbar Defaults (Overriding Windows desktop white bars)
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 9, 11, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.45);
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(9, 9, 11, 0.8);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  color: #f4f4f5;
+  font-family: 'Geist', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
