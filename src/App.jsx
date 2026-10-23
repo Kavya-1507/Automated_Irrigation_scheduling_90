@@ -32,6 +32,7 @@ import { getDeviceCoordinates, fetchLiveWeatherData, detectUserLocationAndWeathe
 import { speakVernacularVoice, stopVernacularVoice } from './services/voiceService';
 import TwilioModal from './components/TwilioModal';
 import LoginPage from './components/LoginPage';
+import LocationPickerModal from './components/LocationPickerModal';
 
 // 12 Major Indian Languages with Web Speech API voice synthesis codes
 export const LANGUAGES = [
@@ -92,6 +93,7 @@ export default function VercelStyleIrrigationDashboard() {
 
   const [simulatedRain, setSimulatedRain] = useState(0);
   const [isTwilioModalOpen, setIsTwilioModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [pumpActive, setPumpActive] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -181,6 +183,21 @@ export default function VercelStyleIrrigationDashboard() {
 
   const handleRefreshWeather = async () => {
     await handleDetectGPS();
+  };
+
+  // Applied location from Map or India Search
+  const handleApplyLocation = ({ name, lat, lon, weather }) => {
+    setGpsLocationName(name);
+    if (weather) {
+      setLiveWeather(weather);
+    } else {
+      setIsLoadingWeather(true);
+      fetchLiveWeatherData(lat, lon)
+        .then(data => setLiveWeather(data))
+        .finally(() => setIsLoadingWeather(false));
+    }
+    setToastMessage(`📍 Farm Location Switched: ${name}`);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Dynamic FAO-56 Engine calculation
@@ -296,6 +313,21 @@ export default function VercelStyleIrrigationDashboard() {
                 <RefreshCw className={`w-3 h-3 ${isLoadingWeather ? 'animate-spin text-amber-400' : 'text-zinc-500'}`} />
               </button>
             </div>
+
+            {/* Map / Location Switcher Pill */}
+            <button
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/90 border border-emerald-500/30 hover:border-emerald-500/70 text-xs font-mono transition text-zinc-200 shadow-sm active:scale-95"
+              title="Click to Choose Any Location in India on Map"
+            >
+              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="max-w-[100px] sm:max-w-[150px] truncate text-white font-semibold">
+                {gpsLocationName ? gpsLocationName.split(',')[0] : 'India Map'}
+              </span>
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 hidden sm:inline">
+                Change
+              </span>
+            </button>
 
             {/* Global Language Selector */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-white/[0.08] hover:border-white/20 transition text-xs font-semibold text-zinc-300">
@@ -557,8 +589,18 @@ export default function VercelStyleIrrigationDashboard() {
               </div>
 
               <div className="mb-6">
-                <div className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                  <span className="truncate">{gpsLocationName || 'Detecting Live Microclimate...'}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2 truncate">
+                    <MapPin className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <span className="truncate">{gpsLocationName || 'Detecting Live Microclimate...'}</span>
+                  </div>
+                  <button
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1 transition active:scale-95 flex-shrink-0"
+                    title="Change location anywhere in India"
+                  >
+                    <span>🗺️ Map</span>
+                  </button>
                 </div>
                 <div className="text-xs font-mono text-emerald-400 mt-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -629,15 +671,25 @@ export default function VercelStyleIrrigationDashboard() {
               </div>
             </div>
 
-            {/* GPS Detection Button */}
-            <div className="pt-4 border-t border-white/[0.08] flex items-center gap-2">
+            {/* Dual Location Action Buttons: India Map Picker & Device GPS */}
+            <div className="pt-4 border-t border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                onClick={() => setIsLocationModalOpen(true)}
+                className="py-2.5 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/60 text-xs font-semibold transition active:scale-[0.98] flex items-center justify-center gap-2"
+                title="Search and select any location in India on Google Map"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span>🗺️ Pick on India Map</span>
+              </button>
+
               <button
                 onClick={handleDetectGPS}
                 disabled={isLoadingWeather}
-                className="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200 transition active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                title="Fetch Live GPS from this device"
               >
                 <Navigation className={`w-3.5 h-3.5 ${isLoadingWeather ? 'animate-spin text-amber-400' : 'text-cyan-400'}`} />
-                <span>{isLoadingWeather ? 'Detecting Local Microclimate...' : 'Sync Live Local Weather'}</span>
+                <span>{isLoadingWeather ? 'Detecting...' : '📍 Device Live GPS'}</span>
               </button>
             </div>
           </SpotlightCard>
@@ -823,6 +875,15 @@ export default function VercelStyleIrrigationDashboard() {
         onClose={() => setIsTwilioModalOpen(false)}
         result={result}
         currentLang={config.lang}
+      />
+
+      {/* 🗺️ Interactive Google Maps Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        currentLocationName={gpsLocationName}
+        currentCoords={{ lat: activeWeather.lat || 12.52, lon: activeWeather.lon || 76.90 }}
+        onSelectLocation={handleApplyLocation}
       />
 
       {/* Floating Spring Toast */}
