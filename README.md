@@ -102,3 +102,12 @@ Follow this sequence to showcase the system to your reviewer:
 
 6. **Logout & Session:**
    - Click the **`Exit`** button in the top right to smoothly return to the Login portal.
+
+---
+
+## 👥 Project Team & Contributors
+
+- **Kavya (`Kavya-1507`)** — FAO-56 Mathematical Model, Agronomic Depletion Engine & Voice Synthesis
+- **Sanchita (`sanchitans1524@gmail.com`)** — Geolocation Telemetry, Interactive India Map & Soil Database Modules
+
+*Developed for Academic Evaluation & Review (2025 – 2026).*
