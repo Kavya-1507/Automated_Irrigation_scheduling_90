@@ -35,7 +35,9 @@ export default function LocationPickerModal({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const tileLayerRef = useRef(null);
 
+  const [mapMode, setMapMode] = useState('street'); // 'street' or 'satellite'
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -49,6 +51,20 @@ export default function LocationPickerModal({
   // Manual input state
   const [manualLat, setManualLat] = useState(currentCoords.lat || 12.52);
   const [manualLon, setManualLon] = useState(currentCoords.lon || 76.90);
+
+  // 100% Free Open Tile Layers - No API Key Required
+  const TILE_CONFIGS = {
+    street: {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    },
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and GIS User Community',
+      maxZoom: 18
+    }
+  };
 
   // Custom emerald animated map pin
   const createPinIcon = (label = "🌾") => {
@@ -104,11 +120,11 @@ export default function LocationPickerModal({
           zoomControl: true
         });
 
-        // Add dark styled CartoDB / OpenStreetMap tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 19
+        // Add 100% Free OpenStreetMap tile layer (No API key needed)
+        const initialCfg = TILE_CONFIGS[mapMode] || TILE_CONFIGS.street;
+        tileLayerRef.current = L.tileLayer(initialCfg.url, {
+          attribution: initialCfg.attribution,
+          maxZoom: initialCfg.maxZoom
         }).addTo(map);
 
         // Marker placement
@@ -154,8 +170,24 @@ export default function LocationPickerModal({
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
       markerRef.current = null;
+      tileLayerRef.current = null;
     }
   }, [isOpen]);
+
+  // Dynamically swap tile layers when mode changes (Street vs Satellite)
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    if (tileLayerRef.current) {
+      try {
+        mapInstanceRef.current.removeLayer(tileLayerRef.current);
+      } catch (e) {}
+    }
+    const cfg = TILE_CONFIGS[mapMode] || TILE_CONFIGS.street;
+    tileLayerRef.current = L.tileLayer(cfg.url, {
+      attribution: cfg.attribution,
+      maxZoom: cfg.maxZoom
+    }).addTo(mapInstanceRef.current);
+  }, [mapMode]);
 
   // Update position helper
   const handleUpdatePosition = async (lat, lon, fetchName = true) => {
@@ -384,8 +416,36 @@ export default function LocationPickerModal({
           <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-zinc-900 h-64 sm:h-80 w-full">
             <div ref={mapContainerRef} className="w-full h-full z-10" />
 
+            {/* Map Mode Switcher: 100% Free OpenStreetMap vs Esri Satellite */}
+            <div className="absolute top-3 left-14 z-20 flex items-center bg-black/80 backdrop-blur-md rounded-xl p-1 border border-white/20 shadow-lg">
+              <button
+                type="button"
+                onClick={() => setMapMode('street')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                  mapMode === 'street'
+                    ? 'bg-emerald-500 text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Standard Political & Road Map (OpenStreetMap)"
+              >
+                <span>🗺️ Street Map</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMapMode('satellite')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                  mapMode === 'satellite'
+                    ? 'bg-emerald-500 text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Real Farm Aerial Satellite Imagery (Esri World Imagery)"
+              >
+                <span>🛰️ Satellite</span>
+              </button>
+            </div>
+
             {/* Floating Map Helper Badge */}
-            <div className="absolute top-3 right-3 z-20 pointer-events-none bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
+            <div className="absolute top-3 right-3 z-20 pointer-events-none bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[11px] font-mono text-zinc-300 flex items-center gap-1.5 shadow-md">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <span>Click or drag pin to select any farm</span>
             </div>
